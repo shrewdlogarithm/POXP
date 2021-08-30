@@ -1,6 +1,5 @@
 extends Control
 
-onready var f = File.new()
 onready var regex = RegEx.new()
 
 var optfile = "poxp-settings.json"
@@ -20,14 +19,17 @@ var xpthresh = [0,525,1760,3781,7184,12186,19324,29377,43181,61693,85990,117506,
 
 func _ready():	
 	regex.compile("^([0-9]{4})/([0-9]{2})/([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) ([0-9]+?) .*You have entered (.*)\\.")
-
+	
+	$HTTPRequest.connect("request_completed", self, "loadProfileDone")
+	
 	loadoptions()
 	if options.has("logd"):
 		find_node("lblLogf").text = options["logd"]
 	if options.has("acct"):
 		find_node("leAccount").text = options["acct"]
-			
-	$Timer.set_wait_time(5)
+	
+	$Timer.wait_time = 5
+	$Timer.one_shot = false
 	$Timer.start()
 	
 	addOut("Scanning started...")
@@ -36,10 +38,11 @@ func _ready():
 	
 func _on_Timer_timeout():
 	if checklog():
-		liveloadProfile()
+		liveloadProfile()	
 	
 var lastmod = 0
 func checklog(first = false):
+	var f = File.new()
 	var tochk = false
 	if options.has("logd") and options["logd"] != "":
 		var logf = options["logd"] + clientlogfile
@@ -68,15 +71,14 @@ func checklog(first = false):
 							tochk = true
 						lldate = result.strings
 				options["lldate"] = lldate
-				saveoptions()
 				f.close()
+				saveoptions()
 	return tochk
 
 func liveloadProfile():
 	if !options.has("acct") or  options["acct"] == "":
 		addOut("Enter Account Name")
 	else:
-		$HTTPRequest.connect("request_completed", self, "loadProfileDone")
 		var error = $HTTPRequest.request(profileURL + options["acct"])
 		if error != OK:
 			addOut("HTTP: Error " + error)
@@ -112,7 +114,7 @@ func _on_dlgLogf_dir_selected(dir):
 	find_node("lblLogf").text = dir
 	options["logd"] = dir
 	saveoptions()
-	if !f.file_exists(dir + clientlogfile):
+	if !File.new().file_exists(dir + clientlogfile):
 		addOut("Log file not found " + dir + "/Client.log")
 
 func _on_leAccount_text_changed(new_text):
@@ -133,12 +135,14 @@ func addOut(ln):
 	te.cursor_set_line(te.get_line_count())
 	var op = "%02d:%02d:%02d %s" % [dt["hour"],dt["minute"],dt["second"],ln]
 	te.insert_text_at_cursor(op + "\n")
+	var f = File.new()
 	f.open(logfile,File.READ_WRITE)
 	f.seek_end()
 	f.store_line(op)
 	f.close()
 
 func loadoptions():
+	var f = File.new()
 	if f.file_exists(optfile):
 		f.open(optfile,File.READ)
 		var res = JSON.parse(f.get_as_text())
@@ -147,6 +151,7 @@ func loadoptions():
 		f.close()
 	
 func saveoptions():
+	var f = File.new()
 	f.open(optfile,File.WRITE)
 	f.store_string(JSON.print(options))
 	f.close()
