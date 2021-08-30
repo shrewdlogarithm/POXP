@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://main.gd" type="Script" id=1]
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 3.0
+margin_top = -2.0
+margin_right = 3.0
+margin_bottom = -2.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 30.0
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="Panel" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+margin_right = 575.0
+margin_bottom = 20.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="btnLogf" type="Button" parent="Panel/VBoxContainer/HBoxContainer"]
+margin_right = 137.0
+margin_bottom = 20.0
+text = "Select Game Folder"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="dlgLogf" type="FileDialog" parent="Panel/VBoxContainer/HBoxContainer/btnLogf"]
+margin_right = 315.0
+margin_bottom = 130.0
+rect_min_size = Vector2( 200, 250 )
+window_title = "Open a Directory"
+mode = 2
+access = 2
+current_dir = "/Users/johnp/OneDrive/~work/godot/POXP"
+current_path = "/Users/johnp/OneDrive/~work/godot/POXP/"
+
+[node name="lblLogf" type="Label" parent="Panel/VBoxContainer/HBoxContainer"]
+margin_left = 141.0
+margin_top = 3.0
+margin_right = 231.0
+margin_bottom = 17.0
+rect_min_size = Vector2( 90, 0 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Panel/VBoxContainer"]
+margin_top = 24.0
+margin_right = 575.0
+margin_bottom = 48.0
+
+[node name="leAccount" type="LineEdit" parent="Panel/VBoxContainer/HBoxContainer2"]
+margin_right = 155.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 155, 0 )
+placeholder_text = "Enter Account Name"
+
+[node name="btnAccount" type="Button" parent="Panel/VBoxContainer/HBoxContainer2"]
+margin_left = 159.0
+margin_right = 241.0
+margin_bottom = 24.0
+text = "Check Now"
+
+[node name="teOutp" type="TextEdit" parent="Panel/VBoxContainer"]
+margin_top = 52.0
+margin_right = 575.0
+margin_bottom = 600.0
+size_flags_vertical = 3
+readonly = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/btnLogf" to="." method="_on_btnLogf_pressed"]
+[connection signal="dir_selected" from="Panel/VBoxContainer/HBoxContainer/btnLogf/dlgLogf" to="." method="_on_dlgLogf_dir_selected"]
+[connection signal="text_changed" from="Panel/VBoxContainer/HBoxContainer2/leAccount" to="." method="_on_leAccount_text_changed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer2/btnAccount" to="." method="_on_btnAccount_pressed"]
