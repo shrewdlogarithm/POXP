@@ -4,7 +4,8 @@ onready var f = File.new()
 onready var regex = RegEx.new()
 
 var optfile = "poxp-settings.json"
-var logfile = "/Client.txt"
+var logfile = "poxp-log.txt"
+var clientlogfile = "/Client.txt"
 
 var options = {}
 var profileURL = "https://www.pathofexile.com/character-window/get-characters?realm=pc&accountName="
@@ -41,7 +42,7 @@ var lastmod = 0
 func checklog(first = false):
 	var tochk = false
 	if options.has("logd") and options["logd"] != "":
-		var logf = options["logd"] + logfile
+		var logf = options["logd"] + clientlogfile
 		if !f.file_exists(logf):
 			addOut(logf + "not found")
 		else:
@@ -111,7 +112,7 @@ func _on_dlgLogf_dir_selected(dir):
 	find_node("lblLogf").text = dir
 	options["logd"] = dir
 	saveoptions()
-	if !f.file_exists(dir + logfile):
+	if !f.file_exists(dir + clientlogfile):
 		addOut("Log file not found " + dir + "/Client.log")
 
 func _on_leAccount_text_changed(new_text):
@@ -130,7 +131,12 @@ func addOut(ln):
 	var dt = OS.get_time()
 	var te = find_node("teOutp")
 	te.cursor_set_line(te.get_line_count())
-	te.insert_text_at_cursor("\n %02d:%02d:%02d %s" % [dt["hour"],dt["minute"],dt["second"],ln])
+	var op = "%02d:%02d:%02d %s" % [dt["hour"],dt["minute"],dt["second"],ln]
+	te.insert_text_at_cursor(op + "\n")
+	f.open(logfile,File.READ_WRITE)
+	f.seek_end()
+	f.store_line(op)
+	f.close()
 
 func loadoptions():
 	if f.file_exists(optfile):
