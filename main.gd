@@ -1,10 +1,15 @@
 extends Control
 
-onready var regex = RegEx.new()
+onready var logln = RegEx.new()
+onready var zoned = RegEx.new()
+onready var cmds = RegEx.new()
 
 var optfile = "poxp-settings.json"
 var logfile = "poxp-log.txt"
 var clientlogfile = "/Client.txt"
+
+var lastch = ""
+var lastchlvl = 0
 
 var options = {}
 var profileURL = "https://www.pathofexile.com/character-window/get-characters?realm=pc&accountName="
@@ -18,7 +23,9 @@ var xpthresh = [0,525,1760,3781,7184,12186,19324,29377,43181,61693,85990,117506,
 2658074992,2876116901,3111280300,3364828162,3638186694,3932818530,4250334444]
 
 func _ready():	
-	regex.compile("^([0-9]{4})/([0-9]{2})/([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) ([0-9]+?) .*You have entered (.*)\\.")
+	logln.compile("^([0-9]{4})/([0-9]{2})/([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) ([0-9]+?) (.*)$")
+	#zoned.compile("You have entered (.*)\\.")
+	zoned.compile("Generating level ([0-9]+) area \"(.*)\"")
 	
 	$HTTPRequest.connect("request_completed", self, "loadProfileDone")
 	
@@ -56,20 +63,29 @@ func checklog(first = false):
 				f.seek_end(-65535) # limit how many lines we check
 				while not f.eof_reached():
 					var ln = f.get_line()
-					var result = regex.search(ln)
-					if result:
+					var loglnf = logln.search(ln)
+					if loglnf:
 						var newlog = false
 						if options.has("lldate"):
 							for dp in range(1,8):
-								if int(result.strings[dp]) > int(options["lldate"][dp]):
+								if int(loglnf.strings[dp]) > int(options["lldate"][dp]):
 									newlog = true
 									break
-								elif int(result.strings[dp]) < int(options["lldate"][dp]):
+								elif int(loglnf.strings[dp]) < int(options["lldate"][dp]):
 									break
-						if !first and newlog:
-							addOut(result.strings[8])
-							tochk = true
-						lldate = result.strings
+						if newlog and !first:
+							# check for our chat - capture commands here?
+							for chr in options["profile"]:
+								cmds.compile(" " + chr["name"] + ": (.*)")
+								var cmdsf = cmds.search(loglnf.strings[8])
+								if cmdsf:
+									addOut(cmdsf.strings[1])
+							# check for zoning 
+							var zonedf = zoned.search(loglnf.strings[8])
+							if zonedf:
+								addOut(zonedf.strings[2] + " (" + zonedf.strings[1] + ")")
+								tochk = true
+						lldate = loglnf.strings
 				options["lldate"] = lldate
 				f.close()
 				saveoptions()
@@ -100,6 +116,10 @@ func getlvlprog(lvl,xp):
 
 func checkchars(prevdb,db):
 	for chr in db:
+		if "lastActive" in chr and lastch != chr["name"]:
+			lastch = chr["name"]
+			lastchlvl = chr["level"]
+			addOut("Last Active " + lastch + "(" + str(lastchlvl) + ")")
 		for ochr in prevdb:
 			if ochr["name"] == chr["name"] and chr["experience"] != ochr["experience"]:
 				addOut("%s From %s -> %s" % [chr["name"],getlvlprog(ochr["level"],ochr["experience"]),getlvlprog(chr["level"],chr["experience"])])
@@ -115,7 +135,7 @@ func _on_dlgLogf_dir_selected(dir):
 	options["logd"] = dir
 	saveoptions()
 	if !File.new().file_exists(dir + clientlogfile):
-		addOut("Log file not found " + dir + "/Client.log")
+		addOut("Log file not found at " + dir + clientlogfile)
 
 func _on_leAccount_text_changed(new_text):
 	if new_text != "":
