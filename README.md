@@ -15,9 +15,7 @@ It's a project for a game-creator called [Godot](https://godotengine.org/)
 Why?  Because it creates small executables for Windows/Linux/Mac and it's free/easy for anyone to use!  
 
 ## Where's the download? ##
-Right now I'm not sharing an executable because people are wary of those  
-You can run this simply by downloading Godot, running it (no install required) and opening this project  
-You could even 'Export' your own .exe if you wished-to.
+Currently there's only a Windows exe in the Releases list - if other people would like to test/build this for other platforms, that'd be great!
 
 ## How to use ##
 Run the project, select your PoE 'logs' directory and enter your accountname (must have a public profile)  
