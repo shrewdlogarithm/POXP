@@ -8,6 +8,7 @@ export_presets.cfg
 .mono/
 data_*/
 
+/addons
 /build
 poxp-settings.json
 poxp-log.txt

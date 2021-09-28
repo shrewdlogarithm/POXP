@@ -26,7 +26,7 @@ func _ready():
 	logln.compile("^([0-9]{4})/([0-9]{2})/([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) ([0-9]+?) (.*)$")
 	#zoned.compile("You have entered (.*)\\.")
 	zoned.compile("Generating level ([0-9]+) area \"(.*)\"")
-	
+
 	$HTTPRequest.connect("request_completed", self, "loadProfileDone")
 	
 	loadoptions()
@@ -42,7 +42,14 @@ func _ready():
 	addOut("Scanning started...")
 	checklog(true)
 	liveloadProfile()
-	
+
+var lastclip
+func _process(elaps):
+	var clip = OS.get_clipboard()
+	if clip != lastclip:
+		lastclip = clip
+		# TODO process for map data
+		
 func _on_Timer_timeout():
 	if checklog():
 		liveloadProfile()	
@@ -74,14 +81,14 @@ func checklog(first = false):
 								elif int(loglnf.strings[dp]) < int(options["lldate"][dp]):
 									break
 						if newlog and !first:
-							# check for our chat - capture commands here?
+							# TODO check our chat - capture commands here?
 							for chr in options["profile"]:
 								cmds.compile(" " + chr["name"] + ": (.*)")
 								var cmdsf = cmds.search(loglnf.strings[8])
 								if cmdsf:
 									addOut(cmdsf.strings[1])
-							# check for zoning 
 							var zonedf = zoned.search(loglnf.strings[8])
+							# TODO show XP penalty for this zone??
 							if zonedf:
 								addOut(zonedf.strings[2] + " (" + zonedf.strings[1] + ")")
 								tochk = true
@@ -116,13 +123,15 @@ func getlvlprog(lvl,xp):
 
 func checkchars(prevdb,db):
 	for chr in db:
+		for ochr in prevdb:
+			if ochr["name"] == chr["name"] and chr["experience"] != ochr["experience"]:
+				addOut("%s From %s -> %s" % [chr["name"],getlvlprog(ochr["level"],ochr["experience"]),getlvlprog(chr["level"],chr["experience"])])
+	for chr in db:
 		if "lastActive" in chr and lastch != chr["name"]:
 			lastch = chr["name"]
 			lastchlvl = chr["level"]
 			addOut("Last Active " + lastch + "(" + str(lastchlvl) + ")")
-		for ochr in prevdb:
-			if ochr["name"] == chr["name"] and chr["experience"] != ochr["experience"]:
-				addOut("%s From %s -> %s" % [chr["name"],getlvlprog(ochr["level"],ochr["experience"]),getlvlprog(chr["level"],chr["experience"])])
+			break;
 	
 func _on_btnLogf_pressed():
 	var dlg = find_node("dlgLogf")
