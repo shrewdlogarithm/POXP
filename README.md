@@ -1,7 +1,9 @@
 # POXP
 ## Path of Exile Desktop XP Tracker ##
 
-This is VERY much work-in-progress - sharing for feedback/ideas!
+I've shared as a proof-of-concept only - I've no plans to develop this as-is
+
+I have continued this idea in a Python-based app which is [available here](https://github.com/shrewdlogarithm/PoE-Character-Log-Desktop) - this has additional features etc.
 
 ### What it Does ###
 Watches your Client.txt (log file) and when you zone, checks your Profile via the API and reports which characters have gained (or lost) XP
